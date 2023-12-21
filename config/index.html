@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add/Remove</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            color: #333;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .container {
+            width: 80%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            transition: background-color 0.3s ease;
+        }
+        body.dark-mode {
+            background-color: #333;
+            color: #fff;
+        }
+        .container h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: inherit;
+        }
+        label, input, textarea, button {
+            display: block;
+            margin-top: 15px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            color: inherit;
+            background-color: #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            background-color: #e0e0e0;
+        }
+        button {
+            padding: 10px 15px; 
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .dark-mode-icon {
+            position: fixed;
+            bottom: 50px;
+            right: 30px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .dark-mode .container {
+            background-color: #333;
+        }
+        .dark-mode input, .dark-mode textarea {
+            background-color: #444; 
+        }
+        .dark-mode button {
+            background-color: #fff;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button onclick="toggleDarkMode()" class="dark-mode-toggle">
+                <span class="dark-mode-icon">🌑</span>
+            </button>
+        </header>
+        <main>
+            <section>
+                <h2>Add</h2>
+                <input type="text" id="addUrl" placeholder="URL">
+                <input type="text" id="addUser" placeholder="User">
+                <button onclick="addEntry()">Add</button>
+            </section>
+            <section>
+                <h2>Remove</h2>
+                <input type="text" id="removeUrl" placeholder="URL">
+                <button onclick="removeEntry()">Remove</button>
+            </section>
+             <section>
+                <h2>Reset Database Uptime Links</h2>
+                <input type="password" id="resetPassword" placeholder="Enter Password">
+                <button onclick="resetData()">Reset</button>
+            </section>
+            <section>
+                <h2>Uptime Status</h2>
+                <ul id="uptimeStatus"></ul>
+            </section>
+        </main>
+    </div>
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const darkModeIcon = document.querySelector('.dark-mode-icon');
+            darkModeIcon.classList.toggle('light');
+            darkModeIcon.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌑';
+        }
+function addEntry() {
+    const url = document.getElementById("addUrl").value;
+    const user = document.getElementById("addUser").value;
+    fetch(`/add?url=${url}&user=${user}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Added successfully!");
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        });
+}
+
+function removeEntry() {
+    const url = document.getElementById("removeUrl").value;
+    fetch(`/remove?url=${url}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Removed successfully!");
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        });
+}
+
+        function fetchUptimeStatus() {
+            fetch('/checkuptime')
+                .then(response => response.json())
+                .then(data => {
+                    const statusList = document.getElementById("uptimeStatus");
+                    statusList.innerHTML = "";
+                    data.forEach(entry => {
+                        const listItem = document.createElement("li");
+                        listItem.textContent = `${entry.url} - Status: ${entry.status}`;
+                        statusList.appendChild(listItem);
+                    });
+                });
+        }
+        window.onload = fetchUptimeStatus;
+        function resetData() {
+    const password = document.getElementById("resetPassword").value;
+    
+    fetch(`/resetdata?pass=${password}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        });
+}
+    </script>
+</body>
+</html>
